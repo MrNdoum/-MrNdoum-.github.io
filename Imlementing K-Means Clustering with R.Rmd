@@ -1,0 +1,92 @@
+---
+title: "Implementing K-Means"
+author: "Gabriel Ndoum"
+date: "May 11, 2019"
+output: pdf_document
+---
+
+```{r}
+
+#let view the data then we can analyse.
+crimeNaless <- na.omit(USArrests)
+crime <- data.matrix(crimeNaless)
+str(crime)
+crime
+
+# will choose 5 as the number of cluster. The syntax is : kmeans( data, k) 
+# where k is the number of cluster centers.
+cluster <- kmeans(crime,5)
+class(cluster)
+
+#let's analyse the clustering
+str(cluster)
+
+#the str() function gives the structure of the kmeans with the following parameters:
+#withinss, betweenss, etc, analyzing which you can find out the performance of kmeans.
+
+#betweenss : Between sum of squares for instance Intracluster similarity
+
+#withinss : Within sum of square such as Intercluster similarity
+
+#totwithinss : Sum of all the withinss of all the clusters : Total intra-cluster similarity
+
+#Let see how we can find the optimal value of 'k'.
+
+# Dissortion : can be calculated in terms of withinss.
+# Lesser the value of 'withinss' of a particular cluster,
+# more densely populated it will be, thus minimum distortion
+#This function takes up the data and the value of k 
+#and returns the 'km$totwithinss' for it
+kmeans.wss.k <- function(crime, k){
+  km = kmeans(crime, k)
+  return (km$tot.withinss)
+}
+
+kmeans.wss.k(crime,5) # what is the value of withinss for k=5
+
+# lets increase k value. let go with 10
+kmeans.wss.k(crime,10)
+
+#It can be seen that as the value of K increases, distortion decreases.
+
+#We can take out the different values of 'km$totwithinss' 
+#and plot them in a graph to find the relationship 
+#between distortion and the value of k. 
+#The following function does that for us:
+kmeans.dis <- function(crime, maxk){
+  dis=(nrow(crime)-1)*sum(apply(crime,2,var))
+  dis[2:maxk]=sapply (2:maxk, kmeans.wss.k, crime=crime)
+  return(dis)
+}
+maxk = 10
+dis = kmeans.dis(crime, maxk);
+plot(1:maxk, dis, type='b', xlab="Number of Clusters",
+     ylab="Distortion",
+     col="red")
+
+#Elbow Curve: This is the plot between 'k', the number of clusters 
+#and the 'totwithinss' (or distortion) for each value of k. 
+#With less cluster, there is a significant decrease in distortion too. 
+#This value of k(4) beyond which the distortion rate becomes constant is the optimal value
+
+#Let us apply some animation to understand how R gave us the clustered results.
+
+library(animation)
+cluster<- kmeans.ani(crime, 4)
+
+#The clustering accuracy can be determined by the animation chart of K-means clustering using 
+#the 'animation" package which shows the clustering process. 
+#If the clusters groups or centres aren't overlapping with each other we can conclude
+#the clustering accuracy. We also can measure the accuracy of the new labelling by comparing it 
+#with the original labeling (original labelling is the ground truth) i.e using a table function
+
+#It can be seen that the data is divided into 4 clusters. 
+# And the cluster centers are :
+
+cluster$centers
+
+#Cluster-4 with 'Oregon' as the cluster center has a huge crime rate.
+
+#Cluster-3 and Cluster-2 follow up.
+```
+
